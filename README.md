@@ -33,3 +33,11 @@ clasp push
 4. Copia la URL `/exec` resultante. El frontend tiene la URL del backend fija (`GAS_URL` / `GAS_PS` en `index.html`); si tu implementación genera otra URL, actualízala ahí y vuelve a hacer `clasp push` + nueva versión de la implementación.
 
 `doGet` sirve siempre el `index.html` de este repo (aunque se pase `?page=admin` o `?page=tesoreria` y ese archivo no exista aquí) y toma el título de la pestaña del `<title>` del HTML.
+
+## Publicación automática (GitHub Pages)
+
+Cada push a `main` publica `index.html` en GitHub Pages mediante `.github/workflows/deploy-pages.yml`, igual que en capturabox:
+
+https://alejomorales360-dev.github.io/so1-puntajes/
+
+La página llama al backend de Apps Script por `fetch`. Si cambias `Codigo.gs`, hay que volver a desplegarlo en Apps Script; los cambios en `index.html` se publican solos.
