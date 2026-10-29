@@ -1,5 +1,21 @@
 # SO1 · Puntajes
 
+## Estructura: un solo enlace para las 4 apps de SO1
+
+`https://alejomorales360-dev.github.io/so1-puntajes/` es la **pantalla central**:
+
+| Ruta | App |
+|---|---|
+| `/` | Pantalla central (elige a dónde entrar) |
+| `/puntajes/` | Consultar mi puntaje (socios) |
+| `/lista/` | Pasar lista (directiva y comisiones) |
+| `/admin/` | Administración |
+| `/tesoreria/` | Tesorería |
+
+Las 4 apps usan el backend `Codigo.gs` (un mismo proyecto de Apps Script).
+Los repositorios `so1-admin`, `so1-tesoreria` y `PasarLista` quedan solo como
+redirección hacia aquí.
+
 App web (Google Apps Script) para consultar el puntaje de un socio: ranking, historial de asistencias, cuotas y ausencias en actividades obligatorias.
 
 Este repositorio es una de las tres apps que originalmente vivían en un mismo proyecto de Apps Script (Puntajes, Admin, Tesorería). Cada una quedó separada en su propio repositorio, pero **comparten el mismo backend (`Codigo.gs`)** porque todas leen/escriben la misma planilla de Google Sheets.

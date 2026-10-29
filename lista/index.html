@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0f172a">
+<title>SO1 · Pasar lista</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,'Segoe UI',Roboto,sans-serif;-webkit-tap-highlight-color:transparent}
+html,body{background:#f1f5f9;color:#1e293b;touch-action:manipulation}
+[hidden]{display:none!important}
+button{font-family:inherit;cursor:pointer;border:none}
+input,select{font-size:16px}
+.in{max-width:760px;margin:0 auto}
+.wrap{max-width:460px;margin:0 auto;padding:20px 16px}
+.card{background:#fff;border-radius:14px;padding:20px;box-shadow:0 1px 4px rgba(0,0,0,.08)}
+.card h2{font-size:20px;margin-bottom:14px}
+.lbl{display:block;font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.4px;margin:0 0 5px}
+.inp{display:block;width:100%;padding:13px;border:2px solid #e2e8f0;border-radius:10px;background:#f8fafc;margin-bottom:12px;outline:none}
+.inp:focus{border-color:#3b82f6;background:#fff}
+.prim{display:block;width:100%;padding:14px;border-radius:10px;background:#22c55e;color:#fff;font-size:16px;font-weight:700;min-height:50px}
+.prim:disabled{background:#94a3b8}
+.sec{background:#f1f5f9;color:#64748b}
+.err{color:#dc2626;font-size:13px;margin-top:10px;text-align:center;min-height:16px}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.chk{display:flex;align-items:center;gap:10px;background:#fff7ed;border:1.5px solid #fed7aa;border-radius:10px;padding:11px 12px;margin:2px 0 12px;font-size:13px;font-weight:700;color:#9a3412}
+.chk input{width:20px;height:20px;flex:0 0 auto}
+.exbox{background:#fffbeb;border:1.5px solid #fde68a;border-radius:10px;padding:12px 12px 2px;margin-bottom:12px}
+.spin{width:38px;height:38px;border:4px solid #e2e8f0;border-top-color:#22c55e;border-radius:50%;animation:sp .8s linear infinite;margin:40px auto 14px}
+@keyframes sp{to{transform:rotate(360deg)}}
+
+/* ── Lista ── */
+#hdr{position:sticky;top:0;z-index:20;background:#0f172a;color:#fff;padding:8px 12px 6px;padding-top:max(8px,env(safe-area-inset-top))}
+.h1{display:flex;align-items:center;gap:8px}
+.evt{flex:1;min-width:0}
+.evt b{display:block;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.evt small{font-size:11px;color:rgba(255,255,255,.55)}
+.pill{border-radius:20px;padding:5px 10px;font-size:12px;font-weight:700;background:#334155;color:#fff;white-space:nowrap}
+.pill.ok{background:rgba(34,197,94,.2);color:#4ade80}
+.pill.wait{background:rgba(245,158,11,.2);color:#fbbf24}
+.pill.err{background:rgba(239,68,68,.25);color:#fca5a5}
+.btn-sm{background:rgba(255,255,255,.14);color:#fff;border-radius:8px;padding:7px 11px;font-size:12px;font-weight:700}
+.cnt{display:flex;gap:11px;font-size:12px;padding:6px 0 5px;color:rgba(255,255,255,.65);flex-wrap:wrap;align-items:center}
+.cnt b{font-size:15px;color:#fff}
+.cnt .f b{color:#fbbf24}
+.chipx{background:#f59e0b;color:#1e293b;border-radius:20px;padding:4px 11px;font-size:12px;font-weight:800}
+.h3{display:flex;gap:6px}
+#q{flex:1;min-width:0;padding:10px 12px;border-radius:10px;border:none;background:#fff;color:#1e293b;outline:none}
+#btnUndo{background:rgba(255,255,255,.14);color:#fff;border-radius:10px;width:44px;font-size:20px}
+#filt{border-radius:10px;border:none;padding:0 8px;background:rgba(255,255,255,.14);color:#fff;font-size:13px}
+#filt option{color:#1e293b}
+#letras{display:flex;gap:4px;overflow-x:auto;padding:7px 0 2px;scrollbar-width:none}
+#letras::-webkit-scrollbar{display:none}
+#letras button{flex:0 0 auto;min-width:28px;height:28px;border-radius:7px;background:rgba(255,255,255,.1);color:#cbd5e1;font-size:12px;font-weight:700}
+#lista{padding:6px 8px 160px;max-width:760px;margin:0 auto}
+.row{display:flex;align-items:center;gap:8px;background:#fff;border:2px solid #e2e8f0;border-radius:11px;padding:6px 10px 6px 12px;min-height:58px;margin-bottom:5px;cursor:pointer;user-select:none;-webkit-user-select:none;scroll-margin-top:var(--hh,190px)}
+.row:active{transform:scale(.99)}
+.rn{flex:1;min-width:0}
+.nm{font-size:15px;font-weight:600;line-height:1.25}
+.sub{font-size:11px;color:#94a3b8;margin-top:1px}
+.bd{flex:0 0 auto;display:flex;align-items:center;gap:5px}
+.pe,.ps,.dt{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:9px;border:2px solid #cbd5e1;color:#94a3b8;font-size:13px;font-weight:800;background:#fff}
+.pe.on{background:#16a34a;border-color:#16a34a;color:#fff}
+.ps.on{background:#ea580c;border-color:#ea580c;color:#fff}
+.dt{border-color:#bfdbfe;background:#eff6ff;color:#1d4ed8;font-size:16px}
+.tag{border-radius:20px;padding:4px 9px;font-size:11px;font-weight:800;color:#fff;white-space:nowrap}
+.s-PRESENTE{background:#dcfce7;border-color:#22c55e}.s-PRESENTE .tag{background:#16a34a}
+.s-PARCIAL{background:#fef9c3;border-color:#eab308}.s-PARCIAL .tag{background:#ca8a04}
+.s-REPRESENTADO{background:#dbeafe;border-color:#3b82f6}.s-REPRESENTADO .tag{background:#2563eb}
+.s-JUSTIFICADO{background:#f3e8ff;border-color:#a855f7}.s-JUSTIFICADO .tag{background:#7c3aed}
+#vacio{text-align:center;color:#94a3b8;padding:30px;font-size:14px;display:none}
+
+/* barra inferior: tipo + acción */
+#modos{position:fixed;left:0;right:0;bottom:0;z-index:30;background:#0f172a;padding:7px 8px max(8px,env(safe-area-inset-bottom))}
+.tipos,.accs{display:grid;gap:6px}
+.tipos{grid-template-columns:repeat(3,1fr);margin-bottom:6px}
+.accs{grid-template-columns:repeat(3,1fr)}
+.accs.off{opacity:.3;pointer-events:none}
+#modos button{border-radius:11px;font-weight:800;border:2px solid transparent;line-height:1.15}
+.tipos button{padding:9px 2px;font-size:12px;background:#1e293b;color:#94a3b8}
+.tipos button.on{color:#fff;border-color:#fff}
+.tipos .t-T.on{background:#475569}.tipos .t-R.on{background:#2563eb}.tipos .t-J.on{background:#7c3aed}
+.accs button{padding:9px 2px;font-size:14px;min-height:54px}
+.accs button small{display:block;font-size:15px;margin-bottom:1px}
+.a-E{background:#14532d;color:#86efac}.a-S{background:#7c2d12;color:#fdba74}.a-A{background:#713f12;color:#fde68a}
+.accs button.on{color:#fff;border-color:#fff;box-shadow:0 0 0 2px rgba(255,255,255,.25)}
+.accs .a-E.on{background:#16a34a}.accs .a-S.on{background:#ea580c}.accs .a-A.on{background:#ca8a04}
+#toast{position:fixed;left:50%;bottom:150px;transform:translateX(-50%);background:rgba(15,23,42,.94);color:#fff;padding:9px 16px;border-radius:20px;font-size:13px;font-weight:600;z-index:60;opacity:0;transition:opacity .15s;pointer-events:none;max-width:90%;text-align:center}
+#toast.on{opacity:1}
+
+/* hojas */
+.sheet-bg{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:50;display:flex;align-items:flex-end;justify-content:center}
+.sheet{background:#fff;border-radius:18px 18px 0 0;padding:20px 18px 26px;width:100%;max-width:460px;max-height:92vh;overflow-y:auto}
+.sh-t{font-size:16px;font-weight:800;margin-bottom:2px}
+.sh-s{font-size:12px;color:#64748b;margin-bottom:14px}
+.ex{display:flex;align-items:center;gap:10px;background:#f8fafc;border:2px solid #e2e8f0;border-radius:12px;padding:10px 12px;margin-bottom:8px}
+.ex .t{flex:1}.ex .t b{display:block;font-size:14px}.ex .t small{font-size:11px;color:#64748b}
+.stp{display:flex;align-items:center;gap:10px}
+.stp button{width:42px;height:42px;border-radius:10px;background:#e2e8f0;color:#1e293b;font-size:22px;font-weight:700}
+.stp span{min-width:26px;text-align:center;font-size:20px;font-weight:800}
+.tg{min-width:84px;height:42px;border-radius:10px;background:#e2e8f0;color:#475569;font-size:13px;font-weight:800;padding:0 12px}
+.tg.on{background:#f59e0b;color:#1e293b}
+.tg.lock{opacity:.55}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="vLogin" class="wrap" style="padding-top:12vh">
+  <div class="card">
+    <h2>SO1 · Pasar lista</h2>
+    <label class="lbl">Usuario</label>
+    <input class="inp" id="lUser" type="text" autocomplete="off" autocapitalize="off">
+    <label class="lbl">Contraseña</label>
+    <input class="inp" id="lPass" type="password">
+    <button class="prim" id="btnLogin" onclick="doLogin()">Ingresar</button>
+    <div class="err" id="lErr"></div>
+  </div>
+</div>
+
+<!-- CARGA -->
+<div id="vCarga" class="wrap" hidden style="text-align:center">
+  <div class="spin" id="cSpin"></div>
+  <div id="cMsg" style="color:#64748b;font-size:15px">Cargando socios…</div>
+  <button class="prim" id="cRetry" hidden onclick="entrar()" style="margin-top:16px">Reintentar</button>
+</div>
+
+<!-- NUEVA REUNIÓN -->
+<div id="vSetup" class="wrap" hidden>
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+      <h2 style="margin:0">Nueva reunión</h2>
+      <button class="btn-sm" style="background:#f1f5f9;color:#64748b" onclick="salir()">Salir (<span id="sUser"></span>)</button>
+    </div>
+    <label class="lbl">Tipo</label>
+    <select class="inp" id="sTipo" onchange="onSTipo()"></select>
+    <label class="lbl">Nombre</label>
+    <input class="inp" id="sNombre" type="text" oninput="NOMBRE_MANUAL=true">
+    <div class="g2">
+      <div><label class="lbl">Fecha</label><input class="inp" id="sFecha" type="date" onchange="autoNombre()"></div>
+      <div><label class="lbl">Hora inicio</label><input class="inp" id="sHora" type="time"></div>
+    </div>
+    <div class="g2">
+      <div><label class="lbl">Pts entrada + salida</label><input class="inp" id="sC" type="number" min="0"></div>
+      <div><label class="lbl">Pts solo una marca</label><input class="inp" id="sP" type="number" min="0"></div>
+    </div>
+    <label class="chk"><input type="checkbox" id="sEx" onchange="onSEx()"> Activar extras: acompañante · cartel · jockey</label>
+    <div class="exbox" id="sExBox" hidden>
+      <div class="g3">
+        <div><label class="lbl">👥 Acompañ. (c/u)</label><input class="inp" id="sAc" type="number" min="0"></div>
+        <div><label class="lbl">🪧 Cartel</label><input class="inp" id="sCa" type="number" min="0"></div>
+        <div><label class="lbl">🧢 Jockey</label><input class="inp" id="sJo" type="number" min="0"></div>
+      </div>
+    </div>
+    <button class="prim" id="btnAct" onclick="activar()">Empezar a pasar lista</button>
+    <div class="err" id="sErr"></div>
+  </div>
+</div>
+
+<!-- LISTA -->
+<div id="vLista" hidden>
+  <div id="hdr"><div class="in">
+    <div class="h1">
+      <div class="evt"><b id="evNom">-</b><small id="evSub">-</small></div>
+      <button id="sync" class="pill ok" onclick="forzarEnvio()">✓ Guardado</button>
+      <button class="btn-sm" onclick="abrirCfg()" title="Puntajes de esta reunión">⚙</button>
+      <button class="btn-sm" onclick="terminar()">Terminar</button>
+    </div>
+    <div class="cnt" id="cnt"></div>
+    <div class="cnt" id="cnt2" hidden></div>
+    <div class="h3">
+      <input id="q" type="search" placeholder="Buscar nombre o N°…" autocomplete="off" oninput="onQ(this.value)" onkeydown="onQKey(event)">
+      <button id="btnUndo" onclick="deshacer()" title="Deshacer">↶</button>
+      <select id="filt" onchange="onFilt(this.value)">
+        <option value="todos">Todos</option>
+        <option value="pend">Faltan</option>
+        <option value="marc">Marcados</option>
+        <option value="parc">Parciales</option>
+      </select>
+    </div>
+    <div id="letras"></div>
+  </div></div>
+  <div id="lista"></div>
+  <div id="vacio">Sin resultados</div>
+  <div id="modos"><div class="in">
+    <div class="tipos">
+      <button class="t-T on" data-t="T" onclick="setTipo('T')">Titular</button>
+      <button class="t-R" data-t="R" onclick="setTipo('R')">Representante</button>
+      <button class="t-J" data-t="J" onclick="setTipo('J')">Falta justificada</button>
+    </div>
+    <div class="accs" id="accs">
+      <button class="a-E on" data-a="E" onclick="setAccion('E')"><small>→</small>Entrada</button>
+      <button class="a-S" data-a="S" onclick="setAccion('S')"><small>←</small>Salida</button>
+      <button class="a-A" data-a="A" onclick="setAccion('A')"><small>⚡</small>Ambos</button>
+    </div>
+  </div></div>
+</div>
+<div id="toast"></div>
+
+<!-- Hoja: detalle del socio (representante + extras) -->
+<div class="sheet-bg" id="detBg" hidden onclick="if(event.target===this)cerrarDet()">
+  <div class="sheet">
+    <div class="sh-t" id="detNom"></div>
+    <div class="sh-s" id="detSub"></div>
+    <div id="detRep" hidden>
+      <label class="lbl">Nombre del representante</label>
+      <input class="inp" id="repN" type="text">
+      <label class="lbl">RUT del representante</label>
+      <input class="inp" id="repR" type="text" maxlength="12" oninput="fmtRut(this)">
+    </div>
+    <div id="detEx" hidden>
+      <div class="ex"><div class="t"><b>👥 Acompañantes</b><small id="dAcP"></small></div>
+        <div class="stp"><button onclick="acMenos()">−</button><span id="dAc">0</span><button onclick="acMas()">+</button></div></div>
+      <div class="ex"><div class="t"><b>🪧 Cartel</b><small id="dCaP"></small></div><button class="tg" id="dCa" onclick="togCa()">No</button></div>
+      <div class="ex"><div class="t"><b>🧢 Jockey corporativo</b><small id="dJoP"></small></div><button class="tg" id="dJo" onclick="togJo()">No</button></div>
+    </div>
+    <button class="prim" onclick="cerrarDet()" style="margin-top:6px">Listo</button>
+  </div>
+</div>
+
+<!-- Hoja: puntajes de la reunión -->
+<div class="sheet-bg" id="cfgBg" hidden>
+  <div class="sheet">
+    <div class="sh-t">Puntajes de esta reunión</div>
+    <div class="sh-s" id="cfgInfo"></div>
+    <label class="chk"><input type="checkbox" id="cEx" onchange="onCEx()"> Activar extras: acompañante · cartel · jockey</label>
+    <div class="exbox" id="cExBox" hidden>
+      <div class="g3">
+        <div><label class="lbl">👥 Acompañ. (c/u)</label><input class="inp" id="cAc" type="number" min="0"></div>
+        <div><label class="lbl">🪧 Cartel</label><input class="inp" id="cCa" type="number" min="0"></div>
+        <div><label class="lbl">🧢 Jockey</label><input class="inp" id="cJo" type="number" min="0"></div>
+      </div>
+    </div>
+    <div class="g2">
+      <button class="prim sec" onclick="cerrarCfg()">Cancelar</button>
+      <button class="prim" onclick="guardarCfg()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════
+   SO1 · PASAR LISTA v2 — módulo independiente
+   Mismo backend que SO1 Admin (mismas funciones .gs):
+   autenticarUsuario · obtenerTodosLosSocios · obtenerEventoActivo
+   iniciarEvento / iniciarEventoPendiente · registrarMarcaInstantanea
+   inyectarPuntajeBase (extras) · cerrarEventoActivo
+   ═══════════════════════════════════════════════════════════ */
+var GAS_URL = window.GAS_URL || 'https://script.google.com/macros/s/AKfycby9g8g_ShXZmLTMSWafId1-iW-cIGQ5wiFZCXT6il6NHckCx4jYV1Xl-VESS3vFXk4VOA/exec';
+var READ = {obtenerEventoActivo:1, obtenerTodosLosSocios:1};
+
+function api(fn, arg){
+  return new Promise(function(res, rej){
+    if(window.google && google.script && google.script.run){
+      var run = google.script.run.withSuccessHandler(res).withFailureHandler(function(e){ rej(new Error((e&&e.message)||String(e))); });
+      run[fn].apply(run, arg===undefined ? [] : [arg]);
+      return;
+    }
+    var url = GAS_URL + '?action=' + fn + '&token=' + encodeURIComponent(S.token||'');
+    if(READ[fn]){
+      if(arg && typeof arg==='object') Object.keys(arg).forEach(function(k){ url += '&'+k+'='+encodeURIComponent(String(arg[k]||'')); });
+    } else if(arg!==undefined){
+      url += '&data=' + encodeURIComponent(JSON.stringify(arg));
+    }
+    var ctl = (typeof AbortController!=='undefined') ? new AbortController() : null;
+    var to = setTimeout(function(){ if(ctl) ctl.abort(); }, 25000);
+    /* La contraseña viaja por POST, nunca en la URL */
+    var req = fn==='autenticarUsuario'
+      ? fetch(GAS_URL, {method:'POST', body:JSON.stringify({action:fn, data:arg}), signal:ctl?ctl.signal:undefined})
+      : fetch(url, ctl?{signal:ctl.signal}:{});
+    req.then(function(r){ return r.json(); })
+      .then(function(d){
+        clearTimeout(to);
+        if(d && d.sesionExpirada && S.token){ alert('Tu sesión expiró. Vuelve a ingresar.'); salir(); return; }
+        res(d);
+      })
+      .catch(function(e){ clearTimeout(to); rej(e); });
+  });
+}
+
+/* ── utilidades ── */
+function ge(i){return document.getElementById(i);}
+function p2(n){return String(n).padStart(2,'0');}
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function cap(s){if(!s)return'-';return String(s).toLowerCase().replace(/(^|\s)(\S)/g,function(m,a,b){return a+b.toUpperCase();});}
+function norm(s){return String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/\s+/g,' ').trim();}
+function lRut(r){return String(r||'').replace(/\./g,'').replace(/-/g,'').toUpperCase();}
+function fmtRut(el){var v=el.value.replace(/[^0-9kK]/g,'');if(v.length>1)v=v.slice(0,-1)+'-'+v.slice(-1).toUpperCase();el.value=v;}
+function hoyISO(){var d=new Date();return d.getFullYear()+'-'+p2(d.getMonth()+1)+'-'+p2(d.getDate());}
+function fmtFecha(f){var m=String(f||'').match(/^(\d{4})-(\d{2})-(\d{2})/);return m?m[3]+'-'+m[2]+'-'+m[1]:String(f||'');}
+function num(v,def){var n=parseInt(v,10);return isNaN(n)||n<0?def:n;}
+var _tt=null;
+function toast(msg){var t=ge('toast');t.textContent=msg;t.classList.add('on');clearTimeout(_tt);_tt=setTimeout(function(){t.classList.remove('on');},1500);}
+function mostrar(id){['vLogin','vCarga','vSetup','vLista'].forEach(function(v){ge(v).hidden=(v!==id);});window.scrollTo(0,0);}
+
+/* ── estado ── */
+var S={user:'',rol:'',tipo:'',nombre:''};
+var EV=null, CFG={ex:false,ac:10,ca:10,jo:10};
+var SOC=[], IDX={}, ROWS={}, ST={}, PEND={}, HIST=[], VIS=[];
+var ACCION='E', TIPO='T', FILT='todos', Q='', vCounter=0, NOMBRE_MANUAL=false;
+var LBL={PRESENTE:'Presente',PARCIAL:'Parcial',REPRESENTADO:'Repres.',JUSTIFICADO:'Justif.'};
+
+/* Modelo por socio:
+   e = entrada, s = salida, j = falta justificada, r = representado
+   ac/ca/jo = extras (acompañantes, cartel, jockey)  ·  sent = lo que ya se guardó como puntaje
+   El tipo de asistencia se DERIVA (igual que Admin):
+     ambas marcas → PRESENTE / REPRESENTADO · solo una → PARCIAL · justificado → JUSTIFICADO */
+function nuevoX(){return {e:false,s:false,j:false,r:false,repN:'',repR:'',ac:0,ca:false,jo:false,sent:{ac:0,ca:false,jo:false}};}
+function tipoDe(x){
+  if(!x)return 'AUSENTE';
+  if(x.j)return x.e?'JUSTIFICADO':'AUSENTE';
+  if(x.e&&x.s)return x.r?'REPRESENTADO':'PRESENTE';
+  if(x.e||x.s)return 'PARCIAL';
+  return 'AUSENTE';
+}
+function flags(x){return x?{e:!!x.e,s:!!x.s,j:!!x.j,r:!!x.r,repN:x.repN||'',repR:x.repR||''}:null;}
+function limpiarSiVacio(rk){var x=ST[rk];if(x&&!x.e&&!x.s&&!x.j&&!x.ac&&!x.ca&&!x.jo)delete ST[rk];}
+
+/* ── login ── */
+function doLogin(){
+  var u=ge('lUser').value.trim().toLowerCase(), p=ge('lPass').value.trim();
+  if(!u||!p){ge('lErr').textContent='Ingresa usuario y contraseña';return;}
+  var b=ge('btnLogin');b.disabled=true;b.textContent='Verificando…';ge('lErr').textContent='';
+  api('autenticarUsuario',{usuario:u,password:p}).then(function(d){
+    b.disabled=false;b.textContent='Ingresar';
+    if(!d||!d.ok){ge('lErr').textContent=(d&&d.error)||'Credenciales incorrectas';return;}
+    S={user:u,rol:d.rol,tipo:d.tipo||'',nombre:d.nombreMostrar||u,token:d.token||''};
+    try{sessionStorage.setItem('so1pl_ses',JSON.stringify(S));}catch(e){}
+    entrar();
+  }).catch(function(){b.disabled=false;b.textContent='Ingresar';ge('lErr').textContent='Error de conexión';});
+}
+function salir(){try{sessionStorage.removeItem('so1pl_ses');}catch(e){}location.reload();}
+ge('lPass').addEventListener('keydown',function(e){if(e.key==='Enter')doLogin();});
+
+/* ── carga inicial ── */
+function entrar(){
+  mostrar('vCarga');ge('cSpin').hidden=false;ge('cRetry').hidden=true;ge('cMsg').textContent='Cargando socios…';
+  Promise.all([cargarSocios(), api('obtenerEventoActivo',{usuario:S.user})]).then(function(r){
+    var d=r[1];
+    if(d&&d.evento) iniciarLista(d.evento, d.marcas||{}, null);
+    else mostrarSetup();
+  }).catch(function(e){
+    ge('cSpin').hidden=true;ge('cMsg').textContent='No se pudo conectar: '+(e&&e.message||e);ge('cRetry').hidden=false;
+  });
+}
+function cargarSocios(){
+  return api('obtenerTodosLosSocios').then(function(d){
+    var l=(d&&d.socios)||[];
+    SOC=l.filter(function(s){return s.rut&&(s.estado||'ACTIVO')==='ACTIVO';}).map(function(s){
+      var nn=norm(s.nombre);
+      return {id:s.id,rut:s.rut,rk:lRut(s.rut),nombre:s.nombre||'',nn:nn,L:nn.charAt(0).toUpperCase()};
+    }).sort(function(a,b){return a.nn.localeCompare(b.nn,'es');});
+    IDX={};SOC.forEach(function(s){IDX[s.rk]=s;});
+    if(!SOC.length) throw new Error('La lista de socios llegó vacía');
+  });
+}
+
+/* ── nueva reunión ── */
+var TIPOS=[
+ ['reunion_presencial','Presencial','Obligatorias'],['reunion_online','MEET','Obligatorias'],['marcha','Marcha','Obligatorias'],
+ ['comision_directiva','Directiva','Comisiones'],['comision_fenapo','FENAPO','Comisiones'],['comision_jardincito','Jardincito','Comisiones'],
+ ['comision_escuelita','Escuelita','Comisiones'],['comision_comprando','Comprando Juntos','Comisiones'],['comision_reglamento','Reglamento Interno','Comisiones'],
+ ['comision_bienestar','Bienestar','Comisiones'],['comision_deportes','Deportes','Comisiones'],['comision_comunicaciones','Comunicaciones','Comisiones'],
+ ['comision_secretaria','Secretaría','Comisiones'],['comision_tesoreria','Tesorería','Comisiones'],['comision_talleres','Talleres Laborales','Comisiones']
+];
+var TLBL={};TIPOS.forEach(function(t){TLBL[t[0]]=t[1];});
+function ptsDef(t){return t==='marcha'?[40,20]:t==='comision_escuelita'?[30,15]:[20,10];}
+function mostrarSetup(){
+  var lock=null;
+  if(S.rol==='tesoreria') lock='comision_tesoreria'; else if(S.rol==='comision'&&S.tipo) lock=S.tipo;
+  var sel=ge('sTipo');sel.innerHTML='';var og={};
+  TIPOS.forEach(function(t){
+    if(lock&&t[0]!==lock)return;
+    var g=og[t[2]];if(!g){g=document.createElement('optgroup');g.label=t[2];sel.appendChild(g);og[t[2]]=g;}
+    var o=document.createElement('option');o.value=t[0];o.textContent=t[1];g.appendChild(o);
+  });
+  if(!sel.options.length){var o=document.createElement('option');o.value=lock;o.textContent=TLBL[lock]||lock;sel.appendChild(o);}
+  sel.disabled=!!lock;
+  ge('sFecha').value=hoyISO();
+  var d=new Date();ge('sHora').value=p2(d.getHours())+':'+p2(d.getMinutes());
+  NOMBRE_MANUAL=false;ge('sUser').textContent=S.nombre;ge('sErr').textContent='';
+  onSTipo();mostrar('vSetup');
+}
+function onSTipo(){
+  var t=ge('sTipo').value,p=ptsDef(t);
+  ge('sC').value=p[0];ge('sP').value=p[1];
+  ge('sEx').checked=(t==='marcha');ge('sAc').value=10;ge('sCa').value=10;ge('sJo').value=10;
+  onSEx();autoNombre();
+}
+function onSEx(){ge('sExBox').hidden=!ge('sEx').checked;}
+function autoNombre(){if(NOMBRE_MANUAL)return;var t=ge('sTipo').value;ge('sNombre').value=(TLBL[t]||t)+' '+fmtFecha(ge('sFecha').value);}
+function activar(){
+  var n=ge('sNombre').value.trim(),f=ge('sFecha').value,t=ge('sTipo').value,hi=ge('sHora').value;
+  var c=num(ge('sC').value,20),p=num(ge('sP').value,10);
+  if(!n||!f){ge('sErr').textContent='Falta el nombre o la fecha';return;}
+  var cfg={ex:ge('sEx').checked,ac:num(ge('sAc').value,10),ca:num(ge('sCa').value,10),jo:num(ge('sJo').value,10)};
+  var esPend=(S.rol!=='admin'),b=ge('btnAct');
+  b.disabled=true;b.textContent='Creando…';ge('sErr').textContent='';
+  api(esPend?'iniciarEventoPendiente':'iniciarEvento',{nombre:n,fecha:f,horaInicio:hi,horaTermino:'',tipo:t,ptsCompleto:c,ptsParcial:p,creadoPor:S.user||'comision'})
+  .then(function(r){
+    b.disabled=false;b.textContent='Empezar a pasar lista';
+    if(!r||!r.ok){ge('sErr').textContent='Error: '+((r&&r.error)||'no se pudo crear');return;}
+    iniciarLista({nombre:n,fecha:f,horaInicio:hi,horaTermino:'',tipo:t,ptsCompleto:c,ptsParcial:p,evId:r.evId,pendiente:esPend},{},cfg);
+  }).catch(function(e){b.disabled=false;b.textContent='Empezar a pasar lista';ge('sErr').textContent='Error: '+(e&&e.message||e);});
+}
+
+/* ── configuración local de la reunión (extras) ── */
+function saveCfg(){try{localStorage.setItem('so1pl_cfg_'+EV.evId,JSON.stringify(CFG));}catch(e){}}
+function loadCfg(id){try{var r=localStorage.getItem('so1pl_cfg_'+id);return r?JSON.parse(r):null;}catch(e){return null;}}
+function abrirCfg(auto){
+  ge('cfgInfo').textContent='Entrada + salida: '+EV.ptsCompleto+' pts · Solo una marca: '+EV.ptsParcial+' pts (fijados al crear la reunión).'+(auto===true?' Revisa los puntajes de los extras antes de empezar.':'');
+  ge('cEx').checked=!!CFG.ex;ge('cAc').value=CFG.ac;ge('cCa').value=CFG.ca;ge('cJo').value=CFG.jo;onCEx();
+  ge('cfgBg').hidden=false;
+}
+function onCEx(){ge('cExBox').hidden=!ge('cEx').checked;}
+function cerrarCfg(){ge('cfgBg').hidden=true;}
+function guardarCfg(){
+  CFG={ex:ge('cEx').checked,ac:num(ge('cAc').value,10),ca:num(ge('cCa').value,10),jo:num(ge('cJo').value,10)};
+  saveCfg();cerrarCfg();SOC.forEach(function(s){pintarFila(s.rk);});actualizarContadores();toast('Puntajes guardados');
+}
+
+/* ── lista ── */
+function iniciarLista(ev, marcas, cfgNuevo){
+  EV={nombre:ev.nombre,fecha:ev.fecha,horaInicio:ev.horaInicio||'',tipo:ev.tipo,
+      ptsCompleto:Number(ev.ptsCompleto)||20,ptsParcial:Number(ev.ptsParcial)||10,evId:ev.evId,
+      pendiente:(ev.pendiente!==undefined)?!!ev.pendiente:(S.rol!=='admin')};
+  var pedirCfg=false;
+  if(cfgNuevo){CFG=cfgNuevo;saveCfg();}
+  else{var c=loadCfg(EV.evId);if(c)CFG=c;else{CFG={ex:EV.tipo==='marcha',ac:10,ca:10,jo:10};pedirCfg=true;}}
+  ST={};PEND={};HIST=[];ACCION='E';TIPO='T';FILT='todos';Q='';
+  ge('q').value='';ge('filt').value='todos';
+  /* 1) marcas que ya estaban en el servidor */
+  Object.keys(marcas).forEach(function(k){
+    var m=marcas[k]||{},rk=lRut(m.rut||k),t=m.tipoAsistencia;
+    if(!IDX[rk])return;
+    var x=nuevoX();
+    if(t==='PRESENTE'){x.e=x.s=true;}
+    else if(t==='REPRESENTADO'){x.e=x.s=x.r=true;}
+    else if(t==='PARCIAL'){x.e=true;if(m.nombreRepresentante)x.r=true;}
+    else if(t==='JUSTIFICADO'){x.j=x.e=true;}
+    else return;
+    x.repN=m.nombreRepresentante||'';x.repR=m.rutRepresentante||'';
+    ST[rk]=x;
+  });
+  /* 2) marcas que quedaron sin enviar, 3) extras guardados localmente */
+  restaurarCola();restaurarExtras();
+  ge('evNom').textContent=EV.nombre;
+  ge('evSub').textContent=fmtFecha(EV.fecha)+' · '+(TLBL[EV.tipo]||EV.tipo)+(EV.pendiente?' · pendiente de aprobación':'');
+  setTipo('T',true);setAccion('E',true);
+  construirLista();mostrar('vLista');
+  actualizarContadores();pintarSync();filtrar();kick();
+  if(pedirCfg)abrirCfg(true);
+}
+function construirLista(){
+  var cont=ge('lista');cont.innerHTML='';ROWS={};
+  var frag=document.createDocumentFragment(),letras={};
+  SOC.forEach(function(s){
+    var r=document.createElement('div');r.className='row';r.setAttribute('data-rk',s.rk);
+    r.innerHTML='<div class="rn"><div class="nm">'+esc(cap(s.nombre))+'</div><div class="sub"></div></div><div class="bd"></div>';
+    ROWS[s.rk]=r;frag.appendChild(r);letras[s.L]=1;pintarFila(s.rk);
+  });
+  cont.appendChild(frag);
+  ge('letras').innerHTML=Object.keys(letras).sort().map(function(l){return '<button onclick="irLetra(\''+l+'\')">'+l+'</button>';}).join('');
+}
+ge('lista').addEventListener('click',function(e){
+  var row=e.target.closest('.row');if(!row)return;
+  var rk=row.getAttribute('data-rk');
+  if(e.target.closest('.dt')){abrirDet(rk);return;}
+  if(e.target.closest('.pe')){chip(rk,'e');return;}
+  if(e.target.closest('.ps')){chip(rk,'s');return;}
+  tocar(rk);
+});
+function pintarFila(rk){
+  var r=ROWS[rk],x=ST[rk],soc=IDX[rk],t=tipoDe(x);if(!r)return;
+  r.className='row'+(t!=='AUSENTE'?' s-'+t:'');
+  var sub='N.'+soc.id;
+  if(x){
+    if(x.r&&x.repN)sub+=' · Rep: '+cap(x.repN);
+    if(x.ac)sub+=' · 👥'+x.ac;if(x.ca)sub+=' · 🪧';if(x.jo)sub+=' · 🧢';
+  }
+  r.querySelector('.sub').textContent=sub;
+  var h='';
+  if(!(x&&x.j))h+='<span class="pe'+(x&&x.e?' on':'')+'">E</span><span class="ps'+(x&&x.s?' on':'')+'">S</span>';
+  var hayDet=x&&(t!=='AUSENTE'||x.ac||x.ca||x.jo)&&((x.r&&!x.j)||CFG.ex);
+  if(hayDet)h+='<button class="dt" title="Representante y extras">⋯</button>';
+  if(t!=='AUSENTE')h+='<span class="tag">'+((x.r&&t==='PARCIAL')?'Rep. parcial':LBL[t])+'</span>';
+  r.querySelector('.bd').innerHTML=h;
+}
+
+/* ── tipo y acción ── */
+function setTipo(t,silencio){
+  TIPO=t;
+  document.querySelectorAll('.tipos button').forEach(function(b){b.classList.toggle('on',b.getAttribute('data-t')===t);});
+  ge('accs').classList.toggle('off',t==='J');
+  if(!silencio)toast(t==='J'?'Falta justificada: toca el nombre':t==='R'?'Marcando representantes':'Marcando titulares');
+}
+function setAccion(a,silencio){
+  ACCION=a;
+  document.querySelectorAll('.accs button').forEach(function(b){b.classList.toggle('on',b.getAttribute('data-a')===a);});
+  if(!silencio)toast(a==='E'?'Modo: Entrada':a==='S'?'Modo: Salida':'Modo: Entrada + Salida');
+}
+
+/* ── marcar ── */
+function cambiar(rk,fn,sinHist){
+  var x=ST[rk],prev=flags(x);
+  if(!x)x=ST[rk]=nuevoX();
+  fn(x);
+  if(x.j){x.e=true;x.s=false;x.r=false;}
+  if(!x.r){x.repN='';x.repR='';}
+  if(!sinHist){HIST.push({rk:rk,prev:prev});if(HIST.length>60)HIST.shift();}
+  limpiarSiVacio(rk);
+  encolar(rk);pintarFila(rk);actualizarContadores();
+}
+function tocar(rk){
+  var x=ST[rk],nom=cap(IDX[rk].nombre),msg;
+  if(TIPO==='J'){
+    if(x&&x.j){cambiar(rk,function(x){x.j=false;x.e=false;x.s=false;});msg='↩ '+nom+' — quitado';}
+    else{cambiar(rk,function(x){x.j=true;});msg='✓ '+nom+' — Justificado';}
+  }else{
+    var esR=(TIPO==='R'),a=ACCION;
+    var mismo=!!x&&!x.j&&(!!x.r===esR);
+    var ya=!!x&&((a==='E'&&x.e)||(a==='S'&&x.s)||(a==='A'&&x.e&&x.s));
+    var que=a==='E'?'entrada':a==='S'?'salida':'entrada + salida';
+    if(ya&&mismo){cambiar(rk,function(x){if(a!=='S')x.e=false;if(a!=='E')x.s=false;});msg='↩ '+nom+' — quitó '+que;}
+    else{cambiar(rk,function(x){x.j=false;x.r=esR;if(a!=='S')x.e=true;if(a!=='E')x.s=true;});
+      var t=tipoDe(ST[rk]);msg='✓ '+nom+' — '+que+(t==='PARCIAL'?' (parcial)':'');}
+  }
+  if(navigator.vibrate)navigator.vibrate(25);
+  if(Q){Q='';ge('q').value='';}
+  toast(msg);filtrar();
+}
+function chip(rk,k){
+  var x=ST[rk];
+  if(x&&x.j){toast('Es falta justificada: cámbiala con el modo Titular');return;}
+  if(!x&&TIPO==='J'){toast('Elige Titular o Representante para marcar E / S');return;}
+  cambiar(rk,function(x){if(!x.e&&!x.s)x.r=(TIPO==='R');x[k]=!x[k];});
+  if(Q){Q='';ge('q').value='';}
+  filtrar();
+}
+function deshacer(){
+  var h=HIST.pop();if(!h){toast('Nada que deshacer');return;}
+  var x=ST[h.rk];
+  if(!h.prev){if(x){x.e=x.s=x.j=x.r=false;x.repN=x.repR='';}}
+  else{if(!x)x=ST[h.rk]=nuevoX();x.e=h.prev.e;x.s=h.prev.s;x.j=h.prev.j;x.r=h.prev.r;x.repN=h.prev.repN;x.repR=h.prev.repR;}
+  limpiarSiVacio(h.rk);encolar(h.rk);pintarFila(h.rk);actualizarContadores();filtrar();
+  toast('↶ Deshecho: '+cap(IDX[h.rk].nombre));
+}
+
+/* ── contadores ── */
+function itemsExtras(){
+  var items=[];
+  if(!CFG.ex)return items;
+  Object.keys(ST).forEach(function(rk){
+    var x=ST[rk],d=(x.ac||0)-(x.sent.ac||0);
+    if(d>0)items.push({rk:rk,k:'ac',n:d,pts:d*CFG.ac,con:'Acompañantes movilización ('+d+')'});
+    if(x.ca&&!x.sent.ca)items.push({rk:rk,k:'ca',n:1,pts:CFG.ca,con:'Cartel movilización'});
+    if(x.jo&&!x.sent.jo)items.push({rk:rk,k:'jo',n:1,pts:CFG.jo,con:'Jockey corporativo'});
+  });
+  return items;
+}
+function medirHdr(){document.documentElement.style.setProperty('--hh',(ge('hdr').offsetHeight+6)+'px');}
+function actualizarContadores(){
+  var c={E:0,S:0,C:0,R:0,J:0,F:0,ac:0,ca:0,jo:0};
+  SOC.forEach(function(s){
+    var x=ST[s.rk],t=tipoDe(x);
+    if(t==='AUSENTE')c.F++;
+    else if(t==='JUSTIFICADO')c.J++;
+    else{if(x.e)c.E++;if(x.s)c.S++;if(t==='PRESENTE'||t==='REPRESENTADO')c.C++;if(x.r)c.R++;}
+    if(x){c.ac+=x.ac||0;if(x.ca)c.ca++;if(x.jo)c.jo++;}
+  });
+  ge('cnt').innerHTML='<span>E <b>'+c.E+'</b></span><span>S <b>'+c.S+'</b></span><span>Completos <b>'+c.C+'</b></span><span>R <b>'+c.R+'</b></span><span>J <b>'+c.J+'</b></span><span class="f">Faltan <b>'+c.F+'</b> / '+SOC.length+'</span>';
+  var h2=ge('cnt2');
+  if(CFG.ex){
+    var pe=itemsExtras().length;h2.hidden=false;
+    h2.innerHTML='<span>👥 <b>'+c.ac+'</b></span><span>🪧 <b>'+c.ca+'</b></span><span>🧢 <b>'+c.jo+'</b></span>'+(pe?'<button class="chipx" onclick="guardarExtrasAhora()">Guardar extras ('+pe+')</button>':'');
+  }else h2.hidden=true;
+  medirHdr();
+}
+
+/* ── búsqueda y filtros ── */
+function onQ(v){Q=v;filtrar();}
+function onFilt(v){FILT=v;filtrar();}
+function onQKey(e){
+  if(e.key!=='Enter')return;
+  if(VIS.length===1){tocar(VIS[0]);ge('q').focus();}
+  else if(!VIS.length)toast('Sin resultados');
+  else toast(VIS.length+' coincidencias — afina la búsqueda');
+}
+function filtrar(){
+  var toks=norm(Q).split(' ').filter(Boolean);VIS=[];
+  SOC.forEach(function(s){
+    var t=tipoDe(ST[s.rk]),ok=true;
+    if(FILT==='pend'&&t!=='AUSENTE')ok=false;
+    if(FILT==='marc'&&t==='AUSENTE')ok=false;
+    if(FILT==='parc'&&t!=='PARCIAL')ok=false;
+    if(ok&&toks.length)ok=toks.every(function(w){return s.nn.indexOf(w)>=0||String(s.id)===w;});
+    ROWS[s.rk].style.display=ok?'':'none';
+    if(ok)VIS.push(s.rk);
+  });
+  ge('vacio').style.display=VIS.length?'none':'block';
+}
+function irLetra(l){
+  for(var i=0;i<SOC.length;i++){
+    if(SOC[i].L===l&&ROWS[SOC[i].rk].style.display!=='none'){ROWS[SOC[i].rk].scrollIntoView({block:'start',behavior:'smooth'});return;}
+  }
+}
+
+/* ── detalle: representante + extras ── */
+var _detRk=null;
+function abrirDet(rk){
+  var x=ST[rk];if(!x)return;
+  _detRk=rk;
+  ge('detNom').textContent=cap(IDX[rk].nombre);
+  ge('detSub').textContent='N.'+IDX[rk].id;
+  var vr=x.r&&!x.j;
+  ge('detRep').hidden=!vr;ge('repN').value=x.repN||'';ge('repR').value=x.repR||'';
+  ge('detEx').hidden=!CFG.ex;
+  renderDetEx();
+  ge('detBg').hidden=false;
+}
+function renderDetEx(){
+  var x=ST[_detRk];if(!x)return;
+  ge('dAc').textContent=x.ac;ge('dAcP').textContent='+'+CFG.ac+' pts c/u'+(x.sent.ac?' · '+x.sent.ac+' ya guardado(s)':'');
+  var ca=ge('dCa');ca.className='tg'+(x.ca?' on':'')+(x.sent.ca?' lock':'');ca.textContent=x.ca?'Sí':'No';ge('dCaP').textContent='+'+CFG.ca+' pts'+(x.sent.ca?' · ya guardado':'');
+  var jo=ge('dJo');jo.className='tg'+(x.jo?' on':'')+(x.sent.jo?' lock':'');jo.textContent=x.jo?'Sí':'No';ge('dJoP').textContent='+'+CFG.jo+' pts'+(x.sent.jo?' · ya guardado':'');
+}
+function extraCambio(){guardarExtrasLocal();pintarFila(_detRk);actualizarContadores();renderDetEx();}
+function acMas(){var x=ST[_detRk];if(!x)return;x.ac=Math.min(30,(x.ac||0)+1);extraCambio();}
+function acMenos(){var x=ST[_detRk];if(!x)return;if((x.ac||0)<=(x.sent.ac||0)){toast('Esos ya se guardaron como puntaje');return;}x.ac--;extraCambio();}
+function togCa(){var x=ST[_detRk];if(!x)return;if(x.sent.ca){toast('Ya se guardó como puntaje');return;}x.ca=!x.ca;extraCambio();}
+function togJo(){var x=ST[_detRk];if(!x)return;if(x.sent.jo){toast('Ya se guardó como puntaje');return;}x.jo=!x.jo;extraCambio();}
+function cerrarDet(){
+  var x=ST[_detRk];
+  if(x&&x.r&&!x.j&&!ge('detRep').hidden){
+    var n=ge('repN').value.trim(),r=ge('repR').value.trim();
+    if(n!==x.repN||r!==x.repR){x.repN=n;x.repR=r;encolar(_detRk);pintarFila(_detRk);}
+  }
+  limpiarSiVacio(_detRk);
+  ge('detBg').hidden=true;_detRk=null;actualizarContadores();
+}
+
+/* ── extras: se guardan como puntaje base (igual que "acompañantes" en Admin) ──
+   Quedan en el teléfono hasta que se confirman, así se pueden corregir sin dejar
+   puntos duplicados. Se confirman con "Guardar extras" o automáticamente al Terminar. */
+function guardarExtrasLocal(){
+  if(!EV)return;
+  try{
+    var o={};Object.keys(ST).forEach(function(rk){var x=ST[rk];if(x.ac||x.ca||x.jo||x.sent.ac||x.sent.ca||x.sent.jo)o[rk]={ac:x.ac||0,ca:!!x.ca,jo:!!x.jo,sent:x.sent};});
+    localStorage.setItem('so1pl_x_'+EV.evId,JSON.stringify(o));
+  }catch(e){}
+}
+function restaurarExtras(){
+  try{
+    var o=JSON.parse(localStorage.getItem('so1pl_x_'+EV.evId)||'{}');
+    Object.keys(o).forEach(function(rk){
+      if(!IDX[rk])return;var x=ST[rk]||(ST[rk]=nuevoX());
+      x.ac=o[rk].ac||0;x.ca=!!o[rk].ca;x.jo=!!o[rk].jo;
+      x.sent={ac:(o[rk].sent&&o[rk].sent.ac)||0,ca:!!(o[rk].sent&&o[rk].sent.ca),jo:!!(o[rk].sent&&o[rk].sent.jo)};
+    });
+  }catch(e){}
+}
+function resumenExtras(items){
+  var ac=0,ca=0,jo=0,pts=0;
+  items.forEach(function(i){if(i.k==='ac')ac+=i.n;else if(i.k==='ca')ca++;else jo++;pts+=i.pts;});
+  var p=[];if(ac)p.push(ac+' acompañante(s)');if(ca)p.push(ca+' cartel(es)');if(jo)p.push(jo+' jockey(s)');
+  return p.join(', ')+' = '+pts+' pts';
+}
+var _exBusy=false;
+function enviarExtras(done){
+  if(_exBusy){return;}
+  var items=itemsExtras();
+  if(!items.length){done(0,0);return;}
+  _exBusy=true;
+  var ok=0,fail=0,i=0,esPend=(S.rol!=='admin'),anio=Number(String(EV.fecha).slice(0,4))||new Date().getFullYear();
+  function marca(it){var x=ST[it.rk];if(!x)return;if(it.k==='ac')x.sent.ac=(x.sent.ac||0)+it.n;else if(it.k==='ca')x.sent.ca=true;else x.sent.jo=true;}
+  function sig(){
+    if(i>=items.length){_exBusy=false;guardarExtrasLocal();actualizarContadores();done(ok,fail);return;}
+    var it=items[i++];
+    if(it.pts<=0){marca(it);ok++;sig();return;}
+    api('inyectarPuntajeBase',{rut:IDX[it.rk].rut,anio:anio,puntos:it.pts,concepto:it.con,observacion:'Evento: '+EV.nombre,pendiente:esPend,creadoPor:S.user||'comision'})
+    .then(function(r){if(r&&r.ok){marca(it);ok++;}else fail++;})
+    .catch(function(){fail++;})
+    .then(function(){guardarExtrasLocal();sig();});
+  }
+  sig();
+}
+function guardarExtrasAhora(){
+  var items=itemsExtras();if(!items.length){toast('No hay extras por guardar');return;}
+  if(!confirm('Se asignarán ahora:\n\n'+resumenExtras(items)+(S.rol!=='admin'?'\n\n(quedan pendientes de aprobación del admin)':'')+'\n\n¿Confirmar?'))return;
+  toast('Guardando extras…');
+  enviarExtras(function(ok,fail){toast(fail?(ok+' guardados, '+fail+' fallaron — reintenta'):('✓ '+ok+' extras guardados'));});
+}
+
+/* ── cola de envío de marcas: se ve al instante, se sube en segundo plano ── */
+var enVuelo=0,MAXV=2;
+function ptsPara(t){
+  if(EV.pendiente)return 0;
+  if(t==='PRESENTE'||t==='REPRESENTADO')return EV.ptsCompleto;
+  if(t==='PARCIAL')return EV.ptsParcial;
+  return 0;
+}
+function encolar(rk){
+  var x=ST[rk],p=PEND[rk]||(PEND[rk]={rk:rk,fails:0});
+  p.f=x?flags(x):{e:false,s:false,j:false,r:false,repN:'',repR:''};
+  p.t=tipoDe(p.f);p.v=++vCounter;p.next=0;
+  guardarCola();pintarSync();kick();
+}
+function siguiente(){
+  for(var k in PEND){var p=PEND[k];if(!p.sending&&(p.next||0)<=Date.now())return k;}
+  return null;
+}
+function kick(){
+  if(!EV)return;
+  while(enVuelo<MAXV){var k=siguiente();if(!k)break;enviar(k);}
+  pintarSync();
+}
+function enviar(k){
+  var p=PEND[k],s=IDX[k];
+  if(!p||!s){delete PEND[k];return;}
+  p.sending=true;enVuelo++;
+  var v0=p.v;
+  api('registrarMarcaInstantanea',{evId:EV.evId,rutSocio:s.rut,tipoAsistencia:p.t,puntaje:ptsPara(p.t),
+      nombreRepresentante:p.f.repN||'',rutRepresentante:p.f.repR||'',observacion:'',evento:EV.nombre,fecha:EV.fecha,tipoEvento:EV.tipo})
+  .then(function(r){
+    if(!r||!r.ok)throw new Error((r&&r.error)||'Respuesta inválida');
+    enVuelo--;var q=PEND[k];
+    if(q){if(q.v===v0)delete PEND[k];else{q.sending=false;q.fails=0;}}
+  }).catch(function(){
+    enVuelo--;var q=PEND[k];
+    if(q){q.sending=false;q.fails=(q.fails||0)+1;var d=Math.min(15000,800*Math.pow(2,q.fails-1));q.next=Date.now()+d;setTimeout(kick,d+60);}
+  }).then(function(){guardarCola();pintarSync();kick();});
+}
+function forzarEnvio(){Object.keys(PEND).forEach(function(k){PEND[k].next=0;});kick();toast('Reintentando…');}
+function pintarSync(){
+  var ks=Object.keys(PEND),n=ks.length,el=ge('sync');
+  var fallo=ks.some(function(k){return PEND[k].fails>0;});
+  if(!n){el.className='pill ok';el.textContent='✓ Guardado';}
+  else if(fallo||navigator.onLine===false){el.className='pill err';el.textContent='⚠ '+n+' sin enviar';}
+  else{el.className='pill wait';el.textContent='↑ Enviando '+n;}
+}
+function guardarCola(){
+  if(!EV)return;
+  try{
+    var arr=Object.keys(PEND).map(function(k){return {rk:PEND[k].rk,f:PEND[k].f};});
+    if(arr.length)localStorage.setItem('so1pl_q_'+EV.evId,JSON.stringify(arr));else localStorage.removeItem('so1pl_q_'+EV.evId);
+  }catch(e){}
+}
+function restaurarCola(){
+  try{
+    var raw=localStorage.getItem('so1pl_q_'+EV.evId);if(!raw)return;
+    JSON.parse(raw).forEach(function(p){
+      if(!IDX[p.rk]||!p.f)return;var f=p.f;
+      PEND[p.rk]={rk:p.rk,f:f,t:tipoDe(f),v:++vCounter,fails:0,next:0};
+      var x=ST[p.rk]||(ST[p.rk]=nuevoX());
+      x.e=!!f.e;x.s=!!f.s;x.j=!!f.j;x.r=!!f.r;x.repN=f.repN||'';x.repR=f.repR||'';
+      limpiarSiVacio(p.rk);
+    });
+  }catch(e){}
+}
+window.addEventListener('online',function(){forzarEnvio();});
+window.addEventListener('beforeunload',function(e){if(Object.keys(PEND).length){e.preventDefault();e.returnValue='';}});
+
+/* ── terminar ── */
+function terminar(){
+  if(Object.keys(PEND).length){toast('Aún hay marcas sin enviar — espera el ✓ Guardado');return;}
+  var faltan=0;SOC.forEach(function(s){if(tipoDe(ST[s.rk])==='AUSENTE')faltan++;});
+  var items=itemsExtras();
+  var msg='¿Terminar "'+EV.nombre+'"?\n\nQuedan '+faltan+' socios sin marcar (contarán como ausentes en reuniones obligatorias).';
+  if(items.length)msg+='\n\nSe asignarán ahora los extras:\n'+resumenExtras(items)+(S.rol!=='admin'?'\n(pendientes de aprobación del admin)':'');
+  if(!confirm(msg))return;
+  toast('Cerrando…');
+  enviarExtras(function(ok,fail){
+    if(fail){toast(fail+' extras no se pudieron guardar — la reunión sigue abierta, reintenta');return;}
+    api('cerrarEventoActivo',EV.evId).then(function(r){
+      if(r&&r.ok){
+        try{localStorage.removeItem('so1pl_q_'+EV.evId);localStorage.removeItem('so1pl_x_'+EV.evId);localStorage.removeItem('so1pl_cfg_'+EV.evId);}catch(e){}
+        EV=null;mostrarSetup();toast('Reunión cerrada');
+      }else toast('Error al cerrar');
+    }).catch(function(e){toast('Error: '+(e&&e.message||e));});
+  });
+}
+
+/* ── arranque: si ya había sesión en esta pestaña, entra directo ── */
+(function(){
+  try{var s=JSON.parse(sessionStorage.getItem('so1pl_ses')||'null');if(s&&s.user){S=s;entrar();}}catch(e){}
+})();
+</script>
+</body>
+</html>
